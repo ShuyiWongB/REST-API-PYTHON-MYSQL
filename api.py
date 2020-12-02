@@ -9,7 +9,7 @@ app = Flask(__name__)
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = '123'
-app.config['MYSQL_DATABASE_DB'] = 'databaseparalela'
+app.config['MYSQL_DATABASE_DB'] = 'rest'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 
@@ -22,7 +22,7 @@ def bad_request(error=None):
     }
     resp = jsonify(message)
     resp.status_code = 400
-    return make_response(resp)
+    return resp
 
 @app.errorhandler(404)
 def not_found(error=None):
@@ -70,8 +70,8 @@ def server_error(error):
 
 @app.route('/api/countries/all', methods=['GET'])
 def all():
-    if (request.method == 'POST'):
-        abort(400)
+    if (request.method != 'GET'):
+        return bad_request()
     else:
         try:
             conn = mysql.connect()
@@ -116,7 +116,7 @@ def indicador(countryCode,indicatorCode,year):
             cosa = cursor.fetchone()
             L = {
                 "code" : "PIB",
-                "name" : "Producto Intero Bruto",
+                "name" : "Producto Interno Bruto",
                 "unit" : "$US",
                 "country" : country,
             }
@@ -178,6 +178,16 @@ def indicador(countryCode,indicatorCode,year):
                 "code" : "DBI",
                 "name" : "Doing Business Index",
                 "unit" : "Posición en el ranking (menor es mejor)",
+                "country" : country,
+            }
+            L.update(cosa)
+        if (indicatorCode == 'SMI'):
+            cursor.execute("SELECT indicador_smi as value, anno as year FROM smi where anno =%s", year)
+            cosa = cursor.fetchone()
+            L = {
+                "code" : "SMI",
+                "name" : "Salario Minimo",
+                "unit" : "US$",
                 "country" : country,
             }
             L.update(cosa)
@@ -273,6 +283,15 @@ def indicators_info():
                     "country" : country,
                 }
                 L.update(cosa)
+            if (indicatorCode == 'SMI'):
+                cursor.execute("SELECT indicador_smi as value, anno as year FROM smi where anno =%s", startYear)
+                cosa = cursor.fetchone()
+                L = {
+                    "code" : "SMI",
+                    "name" : "Salario Minimo",
+                    "unit" : "US$",
+                    "country" : country,
+                }
             startYear = startYear+1
             annos.append(L)
         respone = jsonify(annos)
