@@ -72,11 +72,11 @@ METODO POST - Request Body formato JSON
 ```
 mysql -u root -p
 ```
-2. Crear una base de datos llamada "databaseparalela" y luego de creada salir con "exit"
+2. Crear una base de datos llamada "rest" y luego de creada salir con "exit"
 ```
-CREATE DATABASE databaseparalela;
+CREATE DATABASE rest;
 ```
 3. Agregar la base de datos .sql adjunta a la base de datos en el mysql
 ```
-mysql -u root -p databaseparalela < databaseparalela.sql
+mysql -u root -p rest < database rest.sql
 ```
