@@ -17,7 +17,7 @@ app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['SECRET_KEY'] = 'secretkey'
 mysql.init_app(app)
 
-date = datetime.date.today()
+date = datetime.datetime.now()
 
 @app.errorhandler(400)
 def bad_request(error=None):
@@ -103,7 +103,7 @@ def login():
     auth = request.authorization
 
     if auth and auth.password == '123':
-        token = jwt.encode({'user' : auth.username, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+        token = jwt.encode({'user' : auth.username, 'exp' : datetime.datetime.now() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
 
         return jsonify({'token' : token.decode('UTF-8')})
     else:
