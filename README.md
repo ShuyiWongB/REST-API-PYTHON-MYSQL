@@ -21,12 +21,6 @@ python --version
 pip install flask
 ```
 
-* Flask_HTTPAuth
-
-```
-pip install flask-httpauth
-```
-
 * PyMySQL
 
 ```
