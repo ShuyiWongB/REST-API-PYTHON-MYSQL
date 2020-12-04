@@ -3,7 +3,9 @@ import datetime
 from flask import jsonify
 from flask import Flask, flash, request, make_response, abort
 from flaskext.mysql import MySQL
-from werkzeug.exceptions import HTTPException
+#from werkzeug.exceptions import HTTPException
+from functools import wraps
+import jwt
 		
 app = Flask(__name__)
 
@@ -12,6 +14,7 @@ app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = '123'
 app.config['MYSQL_DATABASE_DB'] = 'rest'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+app.config['SECRET_KEY'] = 'secretkey'
 mysql.init_app(app)
 
 date = datetime.date.today()
@@ -39,7 +42,7 @@ def not_found(error=None):
     return resp
 
 @app.errorhandler(401)
-def not_authorized(error):
+def not_authorized(error=None):
     message = {
         'ok': False,
         'date' : date,
@@ -61,7 +64,7 @@ def not_method(error=None):
     return resp
 
 @app.errorhandler(500)
-def server_error(error):
+def server_error(error=None):
     message = {
         'ok': False,
         'date' : date,
@@ -72,7 +75,7 @@ def server_error(error):
     return resp
 
 @app.errorhandler(405)
-def method_error(error):
+def method_error(error=None):
     message = {
         'ok': False,
         'date' : date,
@@ -82,8 +85,32 @@ def method_error(error):
     resp.status_code = 405
     return resp
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*arg, **kwargs):
+        token = request.args.get('token')
+        if not token:
+            return not_method()
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+        except:
+            return not_method()
+        return f(*arg, **kwargs)
+    return decorated
+
+@app.route('/api/login')
+def login():
+    auth = request.authorization
+
+    if auth and auth.password == '123':
+        token = jwt.encode({'user' : auth.username, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+
+        return jsonify({'token' : token.decode('UTF-8')})
+    else:
+        return not_authorized()
 
 @app.route('/api/countries/all', methods=['GET'])
+@token_required
 def all():
         try:
             conn = mysql.connect()
@@ -100,6 +127,7 @@ def all():
             conn.close()
 
 @app.route('/api/countries/<code>/info', methods=['GET'])
+@token_required
 def code(code):
 	try:
 		conn = mysql.connect()
@@ -115,8 +143,8 @@ def code(code):
 		cursor.close() 
 		conn.close()
 
-
 @app.route('/api/indicators/<countryCode>/<indicatorCode>/<year>/info', methods=['GET'])
+@token_required
 def indicador(countryCode,indicatorCode,year):
     try:
         conn = mysql.connect()
@@ -216,6 +244,7 @@ def indicador(countryCode,indicatorCode,year):
         conn.close()
 
 @app.route('/api/indicators/info', methods=['POST'])
+@token_required
 def indicators_info():
     try:
         indicatorCode = request.json['indicatorCode']
