@@ -33,6 +33,12 @@ pip install flask-httpauth
 pip install PyMySQL
 ```
 
+* Flask-MySQL (extension de Flask para acceder a una base de datos MYSQL)
+
+```
+pip install flask-mysql
+```
+
 #### Base de datos, MySQL
 
 ```
