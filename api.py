@@ -28,7 +28,7 @@ users = {
 @auth.verify_password
 def verify_password(username, password):
     if username in users and check_password_hash(users.get(username), password):
-        return usarname
+        return username
     else:
         abort(401)
 
@@ -118,19 +118,22 @@ def all():
 @app.route('/api/countries/<code>/info', methods=['GET'])
 @auth.login_required
 def code(code):
-	try:
-		conn = mysql.connect()
-		cursor = conn.cursor(pymysql.cursors.DictCursor)
-		cursor.execute("SELECT alpha3 as abbr, alpha2 as code, codigo_pais_moneda as currencyCode, moneda as currencyName, lengua as lang, nombre as name FROM info WHERE alpha2 =%s", code)
-		country = cursor.fetchone()
-		respone = jsonify(country)
-		respone.status_code = 200
-		return respone
-	except Exception as e:
-		print(e)
-	finally:
-		cursor.close() 
-		conn.close()
+    try:
+        conn = mysql.connect()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SELECT alpha3 as abbr, alpha2 as code, codigo_pais_moneda as currencyCode, moneda as currencyName, lengua as lang, nombre as name FROM info WHERE alpha2 =%s", code)
+        country = cursor.fetchone()
+        if not country:
+            return not_found()
+        else:
+            respone = jsonify(country)
+            respone.status_code = 200
+            return respone
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/api/indicators/<countryCode>/<indicatorCode>/<year>/info', methods=['GET'])
 @auth.login_required
@@ -146,83 +149,109 @@ def indicador(countryCode,indicatorCode,year):
             if (indicatorCode == 'PIB'):
                 cursor.execute("SELECT indicador_pib as value, anno as year FROM pib where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "PIB",
-                    "name" : "Producto Interno Bruto",
-                    "unit" : "$US",
-                    "country" : country,
-                }
-                L.update(cosa)
-            if (indicatorCode == 'TDA'):
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "PIB",
+                        "name" : "Producto Interno Bruto",
+                        "unit" : "$US",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            elif (indicatorCode == 'TDA'):
                 cursor.execute("SELECT indicador_tda as value, anno as year FROM tda where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "TDA",
-                    "name" : "Tasa de desempleo anual",
-                    "unit" : "%",
-                    "country" : country,
-                }
-                L.update(cosa)
-            if (indicatorCode == 'IFL'):
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "TDA",
+                        "name" : "Tasa de desempleo anual",
+                        "unit" : "%",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            elif (indicatorCode == 'IFL'):
                 cursor.execute("SELECT indicador_ifl as value, anno as year FROM ifl where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "IFL",
-                    "name" : "Inflación",
-                    "unit" : "%",
-                    "country" : country,
-                }
-                L.update(cosa)
-            if (indicatorCode == 'IVA'):
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "IFL",
+                        "name" : "Inflación",
+                        "unit" : "%",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            elif (indicatorCode == 'IVA'):
                 cursor.execute("SELECT indicador_iva as value, anno as year FROM iva where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "IVA",
-                    "name" : "Impuesto de Valor Añadido",
-                    "unit" : "%",
-                    "country" : country,
-                }
-                L.update(cosa)
-            if (indicatorCode == 'PRF'):
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "IVA",
+                        "name" : "Impuesto de Valor Añadido",
+                        "unit" : "%",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            elif (indicatorCode == 'PRF'):
                 cursor.execute("SELECT indicador_prf as value, anno as year FROM prf where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "PRF",
-                    "name" : "Presión Fiscal",
-                    "unit" : "%",
-                    "country" : country,
-                }
-                L.update(cosa)
-            if (indicatorCode == 'TSC'):
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "PRF",
+                        "name" : "Presión Fiscal",
+                        "unit" : "%",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            elif (indicatorCode == 'TSC'):
                 cursor.execute("SELECT indicador_tsc as value, anno as year FROM tsc where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "TSC",
-                    "name" : "Tasa de cambio",
-                    "unit" : "US$",
-                    "country" : country,
-                }
-                L.update(cosa)
-            if (indicatorCode == 'DBI'):
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "TSC",
+                        "name" : "Tasa de cambio",
+                        "unit" : "US$",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            elif (indicatorCode == 'DBI'):
                 cursor.execute("SELECT indicador_dbi as value, anno as year FROM dbi where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "DBI",
-                    "name" : "Doing Business Index",
-                    "unit" : "Posición en el ranking (menor es mejor)",
-                    "country" : country,
-                }
-                L.update(cosa)
-            if (indicatorCode == 'SMI'):
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "DBI",
+                        "name" : "Doing Business Index",
+                        "unit" : "Posición en el ranking (menor es mejor)",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            elif (indicatorCode == 'SMI'):
                 cursor.execute("SELECT indicador_smi as value, anno as year FROM smi where anno =%s", year)
                 cosa = cursor.fetchone()
-                L = {
-                    "code" : "SMI",
-                    "name" : "Salario Minimo",
-                    "unit" : "US$",
-                    "country" : country,
-                }
-                L.update(cosa)
+                if not cosa:
+                    return not_found()
+                else:
+                    L = {
+                        "code" : "SMI",
+                        "name" : "Salario Minimo",
+                        "unit" : "US$",
+                        "country" : country,
+                    }
+                    L.update(cosa)
+            else:
+                return not_found()
             respone = jsonify(L)
             respone.status_code = 200
             return respone
