@@ -78,7 +78,7 @@ CREATE DATABASE rest;
 ```
 3. Agregar la base de datos .sql adjunta a la base de datos en el mysql
 ```
-mysql -u root -p rest < database rest.sql
+mysql -u root -p rest < databaserest.sql
 ```
 ### Usuarios y Contraseñas
 ```
