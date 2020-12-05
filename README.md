@@ -80,16 +80,9 @@ CREATE DATABASE rest;
 ```
 mysql -u root -p rest < database rest.sql
 ```
-### Como ingresar la autorización 
-1. ingresar a la ruta login con usuario 'root' y contraseña '123'
+### Usuarios y Contraseñas
 ```
-/api/login
-```
-2. El programa generara un codigo token que durara 30minutos
-```
-token : 'codigo'
-```
-3. Se ingresa a las rutas con el token
-```
-/api/<ruta>?token='codigo'
+Usuario1 / 123
+Usuario2 / 456
+Usuario3 / 789
 ```
