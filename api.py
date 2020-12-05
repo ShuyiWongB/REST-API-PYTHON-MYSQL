@@ -7,8 +7,9 @@ from flask_httpauth import HTTPBasicAuth
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import generate_password_hash, check_password_hash
 		
-app = Flask(__name__)
+app = Flask(__name__) #Instancia flask
 
+#Configuracion de la base de datos para su lectura
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = '123'
@@ -16,15 +17,18 @@ app.config['MYSQL_DATABASE_DB'] = 'rest'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
 
+#Definicion de las variables date para los errores y auth para la identificacion
 date = datetime.datetime.now()
 auth = HTTPBasicAuth()
 
+#Usuarios y sus contraseñas
 users = {
     'usuario1': generate_password_hash("123"),
     'usuario2': generate_password_hash("456"),
     'usuario3': generate_password_hash("789"),
 }
 
+#Autentificador
 @auth.verify_password
 def verify_password(username, password):
     if username in users and check_password_hash(users.get(username), password):
@@ -32,6 +36,7 @@ def verify_password(username, password):
     else:
         abort(401)
 
+#Definicion de los diferentes errores
 @app.errorhandler(400)
 def bad_request(error=None):
     message = {
@@ -98,13 +103,14 @@ def method_error(error=None):
     resp.status_code = 405
     return resp
 
+#Ruta que entrega la informacion de todos los paises
 @app.route('/api/countries/all', methods=['GET'])
 @auth.login_required
 def all():
         try:
             conn = mysql.connect()
             cursor = conn.cursor(pymysql.cursors.DictCursor)
-            cursor.execute("SELECT alpha3 as abbr, alpha2 as code, codigo_pais_moneda as currencyCode, moneda as currencyName, lengua as lang, nombre as name FROM info")
+            cursor.execute("SELECT alpha3 as abbr, alpha2 as code, codigo_pais_moneda as currencyCode, moneda as currencyName, lengua as lang, nombre as name FROM info") #Query de la busqueda de los datos en la base de datos
             country = cursor.fetchall()
             respone = jsonify(country)
             respone.status_code = 200
@@ -115,6 +121,7 @@ def all():
             cursor.close() 
             conn.close()
 
+#Ruta que encuentra la informacion de un pais en especifico
 @app.route('/api/countries/<code>/info', methods=['GET'])
 @auth.login_required
 def code(code):
@@ -135,6 +142,7 @@ def code(code):
         cursor.close()
         conn.close()
 
+#ruta que encuentra los datos de un indicador en un pais en un año especifico
 @app.route('/api/indicators/<countryCode>/<indicatorCode>/<year>/info', methods=['GET'])
 @auth.login_required
 def indicador(countryCode,indicatorCode,year):
@@ -147,7 +155,7 @@ def indicador(countryCode,indicatorCode,year):
             return not_found()
         else:
             if (indicatorCode == 'PIB'):
-                cursor.execute("SELECT indicador_pib as value, anno as year FROM pib where anno =%s", year)
+                cursor.execute("SELECT indicador_pib as value, anno as year FROM pib where anno =%s", year) #Se buscan los valores de cada indicador a su año correspondiente
                 cosa = cursor.fetchone()
                 if not cosa:
                     return not_found()
@@ -261,10 +269,11 @@ def indicador(countryCode,indicatorCode,year):
         cursor.close() 
         conn.close()
 
+#Ruta que se ingresan datos y entrega la informacion referente
 @app.route('/api/indicators/info', methods=['POST'])
 @auth.login_required
 def indicators_info():
-    try:
+    try: #Ingresa los datos
         indicatorCode = request.json['indicatorCode']
         endYear = request.json['endYear']
         countryCode = request.json['countryCode']
@@ -274,18 +283,18 @@ def indicators_info():
         cursor.execute("SELECT alpha3 as abbr, alpha2 as code, codigo_pais_moneda as currencyCode, moneda as currencyName, lengua as lang, nombre as name FROM info WHERE alpha2 =%s", countryCode)
         country = cursor.fetchone()
         if not country:
-            return not_found()
+            return not_found() #Si el pais esta mal, lo rechaza
         else:
-            annos = []
+            annos = [] #Lista para guardar todos los datos
             if (startYear > endYear):
-                return not_found()
+                return not_found() #Si los años estan al contrario, lo rechaza
             else:
                 while (startYear != endYear+1 and startYear <= endYear):
                     if (indicatorCode == 'PIB'):
                         cursor.execute("SELECT indicador_pib as value, anno as year FROM pib where anno =%s", startYear)
                         cosa = cursor.fetchone()
                         if not cosa:
-                            return not_found()
+                            return not_found() #Si no encuentra el año, lo rechaza
                         else:
                             L = {
                                 'code' : "PIB",
@@ -387,7 +396,7 @@ def indicators_info():
                         return not_found()
                     startYear = startYear+1
                     annos.append(L)
-                respone = jsonify(annos)
+                respone = jsonify(annos) #Convierte la lista en un json para su entrega
                 respone.status_code = 200
                 return respone
     except Exception as e:
@@ -397,4 +406,4 @@ def indicators_info():
         conn.close()
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8080, debug=True)
+    app.run(host='127.0.0.1', port=8080, debug=True) #IP y puerto definido
