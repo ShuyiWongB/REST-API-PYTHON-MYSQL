@@ -392,6 +392,7 @@ def indicators_info():
                                 "unit" : "US$",
                                 "country" : country,
                             }
+                            L.update(cosa)
                     else:
                         return not_found()
                     startYear = startYear+1
