@@ -284,7 +284,11 @@ def indicators_info():
         startYear = request.json['startYear']
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute("SELECT alpha3 as abbr, alpha2 as code, codigo_pais_moneda as currencyCode, moneda as currencyName, lengua as lang, nombre as name FROM info WHERE alpha2 =%s", countryCode)
+        cursor.execute("SELECT alpha3 as abbr, alpha2 as code, 
+		       codigo_pais_moneda as currencyCode, 
+		       moneda as currencyName, 
+		       lengua as lang, 
+		       nombre as name FROM info WHERE alpha2 =%s", countryCode)
         country = cursor.fetchone()
         if not country:
             return not_found() #Si el pais esta mal, lo rechaza
@@ -295,7 +299,9 @@ def indicators_info():
             else:
                 while (startYear != endYear+1 and startYear <= endYear):
                     if (indicatorCode == 'PIB'):
-                        cursor.execute("SELECT indicador_pib as value, anno as year FROM pib where anno =%s", startYear)
+                        cursor.execute("SELECT indicador_pib as value, 
+				       anno as year FROM pib where anno =%s", 
+				       startYear)
                         cosa = cursor.fetchone()
                         if not cosa:
                             return not_found() #Si no encuentra el año, lo rechaza
