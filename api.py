@@ -149,13 +149,16 @@ def indicador(countryCode,indicatorCode,year):
     try:
         conn = mysql.connect()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute("SELECT alpha3 as abbr, alpha2 as code, codigo_pais_moneda as currencyCode, moneda as currencyName, lengua as lang, nombre as name FROM info WHERE alpha2 =%s", countryCode)
+        cursor.execute("SELECT alpha3 as abbr, alpha2 as code, 
+		       codigo_pais_moneda as currencyCode, moneda as currencyName, 
+		       lengua as lang, nombre as name FROM info WHERE alpha2 =%s", countryCode)
         country = cursor.fetchone()
         if not country:
             return not_found()
         else:
             if (indicatorCode == 'PIB'):
-                cursor.execute("SELECT indicador_pib as value, anno as year FROM pib where anno =%s", year) #Se buscan los valores de cada indicador a su año correspondiente
+                cursor.execute("SELECT indicador_pib as value, 
+			       anno as year FROM pib where anno =%s", year) #Se buscan los valores de cada indicador a su año correspondiente
                 cosa = cursor.fetchone()
                 if not cosa:
                     return not_found()
